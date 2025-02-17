@@ -1,31 +1,63 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using ProductApi.Models;
+using ProductApi.Repositories.Contracts;
 
 namespace ProductApi.Controllers;
 
-public class HomeController : Controller
+[ApiController]
+public class HomeController : ControllerBase
 {
-    private readonly ILogger<HomeController> _logger;
+    private readonly IProdutoRepository _produtoRepository;
+    private readonly ICategoriaRepository _categoriaRepository;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(IProdutoRepository produtoRepository,
+        ICategoriaRepository categoriaRepository)
     {
-        _logger = logger;
+        _produtoRepository = produtoRepository;
+        _categoriaRepository = categoriaRepository;
+    }
+    
+    [HttpGet]
+    [Route("produtos")]
+    public async Task<ActionResult<dynamic>> TodosProdutos()
+    {
+        var produtos = _produtoRepository.TodosProdutos();
+        
+        return Ok(produtos);
     }
 
-    public IActionResult Index()
+    [HttpGet]
+    [Route("produtos/{id:int}")]
+    public async Task<ActionResult<dynamic>> ProdutoPorId(int id)
     {
-        return View();
+        var produto = _produtoRepository.ObterProdutoPorId(id);
+        
+        return Ok(produto);
+    }
+    
+    [HttpPost]
+    [Route("produtos")]
+    public async Task<ActionResult<dynamic>> AdicionarProduto(Produto produto)
+    {
+        _produtoRepository.AdicionarProduto(produto);
+        
+        return StatusCode(201, produto);
     }
 
-    public IActionResult Privacy()
+    [HttpPut]
+    [Route("produtos/{id:int}")]
+    public async Task<ActionResult<dynamic>> AtualizarProduto(Produto produto)
     {
-        return View();
+        _produtoRepository.AtualizarProduto(produto);
+        return Ok(produto);
     }
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
+    [HttpDelete]
+    [Route("produtos/{id:int}")]
+    public async Task<ActionResult<dynamic>> RemoverProduto(int id)
     {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        _produtoRepository.RemoverProduto(id);
+        return NoContent();
     }
 }
